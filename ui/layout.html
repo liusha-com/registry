@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Discover, publish, and run portable WebAssembly packages with Wasmd Registry."
+    />
+    <meta name="theme-color" content="#1d63ed" />
+    <title>{{title}} · Wasmd Registry</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/app.css?v=13" />
+    <script defer src="/assets/app.js?v=13"></script>
+  </head>
+  <body data-page="{{page}}">
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Wasmd Registry home"
+        ><img class="brand-mark" src="/favicon.svg?v=8" width="42" height="42" alt="" />
+        <span>wasmd <small>REGISTRY</small></span></a
+      >
+      <form class="header-search" action="/explore" role="search">
+        <label class="sr-only" for="global-query">Search registry</label>
+        <span aria-hidden="true">⌕</span><input id="global-query" name="q" placeholder="Search packages" autocomplete="off" />
+        <button type="submit" aria-label="Search registry">↵</button>
+      </form>
+      <nav aria-label="Main navigation">
+        <a href="/explore">Explore</a><a href="/publish">Publish</a
+        ><a href="/docs">Documentation</a>
+      </nav>
+      <div class="user-nav">
+        <a href="/login" data-anonymous>Sign in</a
+        ><a class="button small" href="/register" data-anonymous
+          >Sign up</a
+        ><a
+          class="button small secondary"
+          href="/account"
+          data-authenticated
+          hidden
+          >Your account</a
+        >
+      </div>
+    </header>
+    <main id="main" class="container">{{body}}</main>
+    <footer>
+      <a class="brand" href="/" aria-label="Wasmd Registry home"><img class="brand-mark" src="/favicon.svg?v=8" width="36" height="36" alt="" /><span>wasmd <small>REGISTRY</small></span></a
+      ><span>Portable by design. Open by default.</span>
+      <nav aria-label="Footer">
+        <a href="/docs">Run with Wasmd</a
+        ><a href="/openapi.yaml">API reference</a
+        ><a href="https://github.com/liusha-com/registry" rel="noreferrer"
+          >Source ↗</a
+        >
+      </nav>
+    </footer>
+    <noscript
+      ><p class="notice">
+        Every page has its own URL. Enable JavaScript to load live packages and
+        submit forms. The HTTP API and CLI also work without JavaScript.
+      </p></noscript
+    >
+  </body>
+</html>

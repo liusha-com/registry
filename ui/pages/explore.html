@@ -1,0 +1,24 @@
+<section class="page-heading">
+  <p class="eyebrow">THE PACKAGE INDEX</p>
+  <h1>Explore the registry.</h1>
+  <p>
+    Find reusable modules and components. Inspect the contract before you build.
+  </p>
+</section>
+<form class="search wide" action="/explore" method="get" role="search">
+  <label class="sr-only" for="query">Search packages</label
+  ><input
+    id="query"
+    name="q"
+    placeholder="Search by package, namespace, or description"
+  /><button>Search →</button>
+</form>
+<section class="section">
+  <div class="section-heading">
+    <h2 id="results-heading">All packages</h2>
+    <span class="badge">Immutable releases</span>
+  </div>
+  <p id="page-status" role="status" class="quiet">Loading packages…</p>
+  <div id="packages" class="package-grid"></div>
+  <nav id="pagination" class="pagination" aria-label="Results pages"></nav>
+</section>

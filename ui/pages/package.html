@@ -1,0 +1,40 @@
+<section class="repository-heading">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/explore">Explore</a><span>/</span><span id="package-namespace"></span><span>/</span><span id="package-name"></span></nav>
+  <div class="repository-identity"><img src="/favicon.svg" width="64" height="64" alt="" /><div><h1 id="package-title">Package details</h1><p id="package-description"></p></div></div>
+  <div class="repository-meta"><span class="badge">WebAssembly</span><span class="badge" id="package-visibility"></span><span id="package-updated"></span></div>
+</section>
+<p id="page-status" role="status">Loading package…</p>
+<div id="package-content" hidden>
+  <div class="repository-tabs" role="tablist" aria-label="Package sections">
+    <button id="overview-tab" role="tab" aria-selected="true" aria-controls="overview-panel">Overview</button>
+    <button id="versions-tab" role="tab" aria-selected="false" aria-controls="versions-panel" tabindex="-1">Versions <span id="version-count"></span></button>
+  </div>
+  <div class="repository-layout">
+    <div class="repository-main">
+      <section id="overview-panel" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="section-heading overview-heading"><h2>Overview</h2><button id="edit-overview" class="button small secondary" hidden>Edit overview</button></div>
+        <div id="overview-content" class="markdown-body"></div>
+        <form id="overview-form" hidden>
+          <label for="overview-markdown">Package overview</label>
+          <div id="overview-editor" class="markdown-editor">
+            <div class="editor-toolbar"><button type="button" data-editor-mode="write" aria-pressed="true">Write</button><button type="button" data-editor-mode="preview" aria-pressed="false">Preview</button><span>Markdown supported</span></div>
+            <textarea id="overview-markdown" name="overview" rows="18" maxlength="65536" aria-describedby="overview-help"></textarea>
+            <div class="markdown-body markdown-preview" hidden></div>
+          </div>
+          <small id="overview-help">Up to 64 KiB. Use absolute HTTPS links for images and documentation.</small>
+          <p id="overview-status" role="status" aria-live="polite"></p>
+          <div class="editor-actions"><button type="submit" class="button small">Save overview</button><button type="button" id="cancel-overview" class="button small secondary">Cancel</button></div>
+        </form>
+      </section>
+      <section id="versions-panel" role="tabpanel" aria-labelledby="versions-tab" hidden>
+        <div class="section-heading"><div><h2>Versions</h2><p class="quiet">Inspect immutable artifacts, digests and component interfaces.</p></div></div>
+        <div id="versions" class="release-list"></div>
+      </section>
+    </div>
+    <aside class="repository-sidebar" aria-label="Latest release">
+      <section class="repository-summary"><div class="summary-heading"><h2>Latest version</h2><a id="latest-version" class="badge"></a></div><dl id="release-summary"></dl><a id="inspect-release" class="text-link">View artifacts &amp; interfaces →</a></section>
+      <section class="repository-pull"><h2>Use this package</h2><p class="quiet">Download with the Wasmd CLI.</p><pre id="install-command"></pre><button class="button small secondary" id="copy-install">Copy command</button></section>
+      <p class="sidebar-note">Every release is verified with SHA-256. Choose a version to inspect its Wasm artifacts and WIT interfaces.</p>
+    </aside>
+  </div>
+</div>

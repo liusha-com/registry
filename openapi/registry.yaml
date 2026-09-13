@@ -1,0 +1,747 @@
+openapi: 3.1.0
+info:
+  title: Wasm Native Registry API
+  version: 0.1.0
+  description: Immutable package metadata and SHA-256 content-addressed blobs.
+  license:
+    name: Apache-2.0
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /healthz:
+    get:
+      operationId: health
+      responses:
+        "200": { description: Process is alive }
+  /readyz:
+    get:
+      operationId: ready
+      responses:
+        "200": { description: Database and blob store are ready }
+        "500": { $ref: "#/components/responses/Error" }
+  /v1/info:
+    get:
+      operationId: registryInfo
+      responses:
+        "200":
+          description: Protocol capabilities and limits
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/RegistryInfo" } },
+            }
+  /v1/auth/register:
+    post:
+      operationId: registerAccount
+      description: Register using email and password only. An internal account identifier is generated automatically. Sets an HttpOnly SameSite=Strict session cookie. Limited to eight attempts per email per 15 minutes.
+      requestBody: { $ref: "#/components/requestBodies/AccountCredentials" }
+      responses:
+        "201": { $ref: "#/components/responses/AccountSession" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/auth/login:
+    post:
+      operationId: loginAccount
+      description: Sign in using email and password only. Username credentials are rejected. Sets a 24-hour browser session. HTTPS public origins add the Secure cookie attribute.
+      requestBody: { $ref: "#/components/requestBodies/LoginCredentials" }
+      responses:
+        "200": { $ref: "#/components/responses/AccountSession" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /v1/auth/providers:
+    get:
+      operationId: authenticationProviders
+      description: Public capability discovery. GitHub is available only on Workers with OAuth secrets configured.
+      responses:
+        "200":
+          description: Enabled sign-in methods
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email_password: { type: boolean }
+                  github: { type: boolean }
+                  registration: { type: boolean }
+  /v1/auth/github:
+    get:
+      operationId: startGithubLogin
+      description: Workers only. Starts OAuth with a browser-bound state cookie and PKCE.
+      responses:
+        "303": { description: Redirect to GitHub authorization or sign-in error page }
+        "429": { $ref: "#/components/responses/Error" }
+  /v1/auth/github/callback:
+    get:
+      operationId: githubCallback
+      description: Workers only. Consumes OAuth state, exchanges the code and creates a browser session. No client secret is exposed.
+      parameters:
+        - { name: state, in: query, required: true, schema: { type: string } }
+        - { name: code, in: query, schema: { type: string } }
+        - { name: error, in: query, schema: { type: string } }
+      responses:
+        "303": { description: Redirect to account or sign-in error page }
+  /v1/auth/me:
+    get:
+      operationId: currentAccount
+      security: [{ sessionCookie: [] }, { bearerAuth: [] }]
+      responses:
+        "200":
+          description: Current account and a CSRF token for cookie-authenticated requests. Response is never cached.
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/AccountSession" } },
+            }
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/auth/logout:
+    post:
+      operationId: logoutAccount
+      description: Revoke the current session or personal credential. Cookie requests require X-CSRF-Token and application/json. Supplied Origin must match.
+      security: [{ sessionCookie: [], csrfToken: [] }, { bearerAuth: [] }]
+      requestBody:
+        content: { application/json: { schema: { type: object } } }
+      responses:
+        "200": { description: Credential revoked and session cookie expired }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /v1/account/namespaces:
+    get:
+      operationId: listAccountNamespaces
+      description: Lists only namespaces owned by the authenticated account, ordered by name. Each includes package_count and its first 20 packages. Workers only; responses are never cached.
+      security: [{ sessionCookie: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: after, in: query, schema: { type: string }, description: Namespace name from next_cursor; omit for the first page. }
+      responses:
+        "200":
+          description: Up to 20 owned namespaces with package previews.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [namespaces, next_cursor]
+                properties:
+                  next_cursor: { type: [string, "null"] }
+                  namespaces:
+                    type: array
+                    items:
+                      type: object
+                      required: [name, description, visibility, created_at, package_count, packages, next_package_cursor]
+                      properties:
+                        name: { type: string }
+                        visibility: { type: string, enum: [public, private] }
+                        description: { type: string }
+                        created_at: { type: string, format: date-time }
+                        package_count: { type: integer }
+                        next_package_cursor: { type: [string, "null"] }
+                        packages:
+                          type: array
+                          items: { $ref: "#/components/schemas/AccountPackage" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/account/namespaces/{namespace}/packages:
+    get:
+      operationId: listAccountNamespacePackages
+      description: Lists up to 20 packages ordered by name. Only the namespace owner can access this account endpoint, even when public reads are enabled. Workers only.
+      security: [{ sessionCookie: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: namespace, in: path, required: true, schema: { type: string } }
+        - { name: after, in: query, schema: { type: string }, description: Package name from next_package_cursor or next_cursor; omit for the first page. }
+      responses:
+        "200":
+          description: A page of packages; next_cursor is null at the end.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [packages, next_cursor]
+                properties:
+                  next_cursor: { type: [string, "null"] }
+                  packages:
+                    type: array
+                    items: { $ref: "#/components/schemas/AccountPackage" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/account/tokens:
+    get:
+      operationId: listPersonalTokens
+      security: [{ sessionCookie: [] }, { bearerAuth: [] }]
+      responses:
+        "200":
+          description: Own unexpired personal tokens; secrets are never returned. No-store.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    {
+                      type: array,
+                      items: { $ref: "#/components/schemas/PersonalToken" },
+                    }
+        "401": { $ref: "#/components/responses/Error" }
+    post:
+      operationId: createPersonalToken
+      description: Browser session only. Token is shown once and can publish/yank only within its owner's namespaces. Set expires_in to a duration in seconds or null for no expiration; omission defaults to 90 days. Supplied Origin must match.
+      security: [{ sessionCookie: [], csrfToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  {
+                    type: string,
+                    minLength: 1,
+                    maxLength: 64,
+                    description: Maximum 64 UTF-8 bytes,
+                  }
+                expires_in:
+                  type: [integer, "null"]
+                  minimum: 1
+                  maximum: 315360000
+                  default: 7776000
+                  description: Lifetime in seconds, up to 3650 days. Null means valid until revoked.
+      responses:
+        "201":
+          description: Created; no-store response contains the only copy of the token secret
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, token, expires_in, expires_at]
+                properties:
+                  id: { type: string }
+                  token: { type: string }
+                  expires_in: { type: [integer, "null"], description: Lifetime in seconds; null means no expiration. }
+                  expires_at: { type: [integer, "null"], description: Expiration as Unix seconds; null means no expiration. }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/account/tokens/{id}:
+    delete:
+      operationId: revokePersonalToken
+      description: Browser session only. Revokes an owned personal token immediately; another user's token returns 404.
+      security: [{ sessionCookie: [], csrfToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Token revoked }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/auth/check:
+    get:
+      operationId: checkAuthentication
+      description: Validate a bearer token and return its effective scopes.
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Credentials are valid
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/AuthStatus" } },
+            }
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/stats:
+    get:
+      operationId: registryStats
+      responses:
+        "200":
+          description: Counters for public content and the authenticated user's private content; excludes other users' private data.
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/RegistryStats" } },
+            }
+  /v1/blobs/{digest}:
+    parameters:
+      - $ref: "#/components/parameters/Digest"
+    put:
+      operationId: uploadBlob
+      security: [{ bearerAuth: [] }, { sessionCookie: [], csrfToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            { schema: { type: string, contentEncoding: binary } }
+          application/wasm:
+            { schema: { type: string, contentEncoding: binary } }
+      responses:
+        "201": { description: Blob created }
+        "200": { description: Identical blob already existed }
+        "400": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+    get:
+      operationId: downloadBlob
+      description: Requires a public release reference or ownership through a namespace or verified upload. Private and unpublished bytes require the owner's session or token. Inaccessible digests return 404.
+      responses:
+        "200": { description: Immutable blob, headers include strong ETag }
+        "304": { description: ETag matched }
+        "404": { $ref: "#/components/responses/Error" }
+    head:
+      operationId: headBlob
+      responses:
+        "200": { description: Blob metadata headers }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/blobs/{digest}/component:
+    parameters:
+      - $ref: "#/components/parameters/Digest"
+    get:
+      operationId: getComponentAnalysis
+      description: Returns automatically extracted Component Model WIT and its import/export dependency graph. Enforces the same visibility rules as blob downloads, including cached analyses.
+      responses:
+        "200":
+          description: Decoded component interface metadata
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/ComponentAnalysis" } },
+            }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/namespaces:
+    post:
+      operationId: createNamespace
+      security: [{ bearerAuth: [] }, { sessionCookie: [], csrfToken: [] }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              { schema: { $ref: "#/components/schemas/CreateNamespace" } },
+          }
+      responses:
+        "201": { description: Namespace created }
+        "409": { $ref: "#/components/responses/Error" }
+  /v1/namespaces/{namespace}:
+    parameters: [{ $ref: "#/components/parameters/Namespace" }]
+    get:
+      operationId: getNamespace
+      responses:
+        "200": { description: Namespace metadata }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/admin/tokens:
+    post:
+      operationId: createToken
+      description: Returns the bearer secret exactly once.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              { schema: { $ref: "#/components/schemas/CreateToken" } },
+          }
+      responses:
+        "201": { description: Token created }
+        "403": { $ref: "#/components/responses/Error" }
+  /v1/admin/tokens/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    delete:
+      operationId: revokeToken
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: Token revoked }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/packages/{namespace}/{package}/versions:
+    parameters:
+      - $ref: "#/components/parameters/Namespace"
+      - $ref: "#/components/parameters/Package"
+    post:
+      operationId: publishVersion
+      security: [{ bearerAuth: [] }, { sessionCookie: [], csrfToken: [] }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              { schema: { $ref: "#/components/schemas/PackageManifest" } },
+          }
+      responses:
+        "201": { description: Immutable version published }
+        "409": { $ref: "#/components/responses/Error" }
+  /v1/packages/{namespace}/{package}:
+    parameters:
+      - $ref: "#/components/parameters/Namespace"
+      - $ref: "#/components/parameters/Package"
+    get:
+      operationId: getPackage
+      responses:
+        "200": { description: Package metadata and versions }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/packages/{namespace}/{package}/overview:
+    parameters:
+      - $ref: "#/components/parameters/Namespace"
+      - $ref: "#/components/parameters/Package"
+    put:
+      operationId: updatePackageOverview
+      summary: Edit package Markdown without changing immutable releases (Workers)
+      security: [{ bearerAuth: [] }, { sessionCookie: [], csrfToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [overview, revision]
+              properties:
+                overview: { type: string, description: Markdown text up to 65536 UTF-8 bytes. Empty text clears it. }
+                revision: { type: integer, minimum: 0, description: Current overview_revision from GET package. }
+      responses:
+        "200": { description: Saved overview and incremented overview_revision }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { description: Overview was updated concurrently. Reload and reconcile changes. }
+  /v1/packages/{namespace}/{package}/{version}:
+    parameters:
+      - $ref: "#/components/parameters/Namespace"
+      - $ref: "#/components/parameters/Package"
+      - $ref: "#/components/parameters/Version"
+    get:
+      operationId: getVersion
+      responses:
+        "200": { description: Exact manifest and immutable record }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/packages/{namespace}/{package}/resolve:
+    parameters:
+      - $ref: "#/components/parameters/Namespace"
+      - $ref: "#/components/parameters/Package"
+      - name: requirement
+        in: query
+        schema: { type: string, default: "*" }
+    get:
+      operationId: resolveVersion
+      responses:
+        "200": { description: Highest matching non-yanked version }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/packages/{namespace}/{package}/{version}/yank:
+    parameters:
+      - $ref: "#/components/parameters/Namespace"
+      - $ref: "#/components/parameters/Package"
+      - $ref: "#/components/parameters/Version"
+    post:
+      operationId: yankVersion
+      security: [{ bearerAuth: [] }, { sessionCookie: [], csrfToken: [] }]
+      responses:
+        "200": { description: Version excluded from resolution }
+    delete:
+      operationId: unyankVersion
+      security: [{ bearerAuth: [] }, { sessionCookie: [], csrfToken: [] }]
+      responses:
+        "200": { description: Version restored to resolution }
+  /v1/search:
+    get:
+      operationId: searchPackages
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 100, default: 20 },
+          }
+        - {
+            name: offset,
+            in: query,
+            schema: { type: integer, minimum: 0, default: 0 },
+          }
+      responses:
+        "200": { description: Matching packages }
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: registry_session
+      description: HttpOnly session; cookie-only, not accepted as a bearer token.
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Read from registration/login or /v1/auth/me; required for cookie mutations.
+    bearerAuth: { type: http, scheme: bearer }
+  parameters:
+    Namespace:
+      name: namespace
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Name" }
+    Package:
+      name: package
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Name" }
+    Version:
+      name: version
+      in: path
+      required: true
+      schema: { type: string, examples: ["1.0.0"] }
+    Digest:
+      name: digest
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Digest" }
+  requestBodies:
+    AccountCredentials:
+      required: true
+      description: JSON only, maximum 8 KiB; passwords require at least 12 characters and at most 128 UTF-8 bytes.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email, password]
+            properties:
+              email: { type: string, format: email, maxLength: 254 }
+              password:
+                {
+                  type: string,
+                  format: password,
+                  minLength: 12,
+                  maxLength: 128,
+                }
+    LoginCredentials:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email, password]
+            properties:
+              email: { type: string, format: email, maxLength: 254 }
+              password: { type: string, format: password, minLength: 12, maxLength: 128 }
+  schemas:
+    AccountSession:
+      type: object
+      required: [user, csrf_token]
+      properties:
+        user:
+          type: object
+          required: [username]
+          properties:
+            username: { type: string, description: Stable internal account identifier, not a login credential }
+            email: { type: [string, "null"], format: email }
+            created_at: { type: integer, description: Unix seconds }
+        csrf_token: { type: [string, "null"] }
+        expires_in: { type: integer, const: 86400 }
+    AccountPackage:
+      type: object
+      required: [namespace, name, description, updated_at]
+      properties:
+        namespace: { type: string }
+        name: { type: string }
+        description: { type: string }
+        updated_at: { type: string, format: date-time }
+    PersonalToken:
+      type: object
+      required: [id, name, created_at, expires_at]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        created_at: { type: integer, description: Unix seconds }
+        expires_at: { type: [integer, "null"], description: Expiration as Unix seconds; null means no expiration. }
+    Name: { type: string, pattern: "^[a-z0-9](?:[a-z0-9._-]{0,62}[a-z0-9])?$" }
+    Digest: { type: string, pattern: "^sha256:[0-9a-f]{64}$" }
+    RegistryInfo:
+      type: object
+      required:
+        [
+          registry_version,
+          package_schemas,
+          max_blob_bytes,
+          public_read,
+          admission_engine,
+          features,
+          component_analysis_max_bytes,
+        ]
+      properties:
+        registry_version: { type: string }
+        package_schemas: { type: array, items: { type: string } }
+        max_blob_bytes: { type: integer, minimum: 1 }
+        public_read: { type: boolean }
+        admission_engine: { type: string, enum: [native, wasmd] }
+        features: { type: array, items: { type: string } }
+        component_analysis_max_bytes: { type: integer, minimum: 1 }
+    RegistryStats:
+      type: object
+      required: [namespaces, packages, versions, blobs, components]
+      properties:
+        namespaces: { type: integer, minimum: 0 }
+        packages: { type: integer, minimum: 0 }
+        versions: { type: integer, minimum: 0 }
+        blobs: { type: integer, minimum: 0 }
+        components: { type: integer, minimum: 0 }
+    AuthStatus:
+      type: object
+      required: [authenticated, token_id, scopes, namespace]
+      properties:
+        authenticated: { const: true }
+        token_id: { oneOf: [{ type: string }, { type: "null" }] }
+        scopes: { type: array, items: { type: string } }
+        namespace:
+          { oneOf: [{ $ref: "#/components/schemas/Name" }, { type: "null" }] }
+    CreateNamespace:
+      type: object
+      required: [name]
+      properties:
+        name: { $ref: "#/components/schemas/Name" }
+        description: { type: string, maxLength: 4096 }
+        visibility:
+          type: string
+          enum: [public, private]
+          default: public
+          description: Public namespaces are readable by everyone when PUBLIC_READ is enabled. Private namespaces are accessible only to their owner and the owner's personal tokens. Visibility is set at creation.
+    CreateToken:
+      type: object
+      required: [name, scopes]
+      properties:
+        name: { type: string }
+        scopes:
+          {
+            type: array,
+            minItems: 1,
+            uniqueItems: true,
+            items:
+              {
+                enum:
+                  [
+                    admin,
+                    "namespace:create",
+                    "package:publish",
+                    "package:yank",
+                  ],
+              },
+          }
+        namespace:
+          { oneOf: [{ $ref: "#/components/schemas/Name" }, { type: "null" }] }
+    Artifact:
+      type: object
+      required: [name, digest, size, media_type, kind]
+      additionalProperties: true
+      properties:
+        name: { $ref: "#/components/schemas/Name" }
+        digest: { $ref: "#/components/schemas/Digest" }
+        size: { type: integer, minimum: 0 }
+        media_type: { type: string }
+        kind: { type: string }
+        target: { oneOf: [{ type: string }, { type: "null" }] }
+    WitFunction:
+      type: object
+      required: [name, params]
+      properties:
+        name: { type: string }
+        params:
+          type: array
+          items:
+            type: object
+            required: [name, ty]
+            properties:
+              name: { type: string }
+              ty: { type: string }
+        result: { oneOf: [{ type: string }, { type: "null" }] }
+    WitWorldItem:
+      type: object
+      required: [name, kind, functions]
+      properties:
+        name: { type: string }
+        kind: { enum: [interface, function, type] }
+        functions:
+          { type: array, items: { $ref: "#/components/schemas/WitFunction" } }
+    GraphNode:
+      type: object
+      required: [id, label, kind]
+      properties:
+        id: { type: string }
+        label: { type: string }
+        kind: { enum: [component, import, export] }
+    GraphEdge:
+      type: object
+      required: [from, to, kind]
+      properties:
+        from: { type: string }
+        to: { type: string }
+        kind: { enum: [import, export] }
+    ComponentAnalysis:
+      type: object
+      required: [digest, kind, package, imports, exports, wit, nodes, edges]
+      properties:
+        digest: { $ref: "#/components/schemas/Digest" }
+        kind: { enum: [component, wit-package] }
+        package: { type: string }
+        world: { oneOf: [{ type: string }, { type: "null" }] }
+        imports:
+          { type: array, items: { $ref: "#/components/schemas/WitWorldItem" } }
+        exports:
+          { type: array, items: { $ref: "#/components/schemas/WitWorldItem" } }
+        wit: { type: string }
+        nodes:
+          { type: array, items: { $ref: "#/components/schemas/GraphNode" } }
+        edges:
+          { type: array, items: { $ref: "#/components/schemas/GraphEdge" } }
+    PackageManifest:
+      type: object
+      required: [schema, namespace, name, version, artifacts]
+      additionalProperties: true
+      properties:
+          schema: { const: wasmd.package/v0 }
+          overview: { type: string, description: "Optional package Markdown, up to 65536 UTF-8 bytes on Workers. Supplying it replaces the package overview; omitting it preserves the existing text." }
+        namespace: { $ref: "#/components/schemas/Name" }
+        name: { $ref: "#/components/schemas/Name" }
+        version: { type: string }
+        description: { type: string, maxLength: 4096 }
+        license: { type: string }
+        repository: { type: string, format: uri }
+        artifacts:
+          {
+            type: array,
+            minItems: 1,
+            items: { $ref: "#/components/schemas/Artifact" },
+          }
+        dependencies: { type: object, additionalProperties: { type: string } }
+        annotations: { type: object, additionalProperties: true }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, details, request_id]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: { type: object }
+            request_id: { type: string }
+  responses:
+    AccountSession:
+      description: Account session established; Cache-Control is no-store
+      headers:
+        Set-Cookie:
+          {
+            schema: { type: string },
+            description: registry_session cookie with Path=/,
+            HttpOnly,
+            SameSite=Strict,
+            Max-Age=86400; Secure for HTTPS origins,
+          }
+      content:
+        {
+          application/json:
+            { schema: { $ref: "#/components/schemas/AccountSession" } },
+        }
+    Error:
+      description: Stable registry error envelope
+      content:
+        { application/json: { schema: { $ref: "#/components/schemas/Error" } } }

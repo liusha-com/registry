@@ -1,0 +1,99 @@
+<section class="page-heading">
+  <p class="eyebrow">YOUR WORKSPACE</p>
+  <h1>Your account.</h1>
+  <p id="page-status" role="status">Checking your session…</p>
+</section>
+<div id="account-content" hidden>
+  <div class="account-banner">
+    <div>
+      <span class="avatar" id="avatar">W</span
+      ><strong id="account-name"></strong><span class="badge">Publisher</span>
+    </div>
+    <button id="logout" class="button secondary">Sign out</button>
+  </div>
+  <section class="account-workspace" aria-labelledby="your-namespaces-title">
+    <div class="section-heading">
+      <div><p class="eyebrow">YOUR PACKAGES</p><h2 id="your-namespaces-title">Your namespaces</h2></div>
+      <button type="button" id="refresh-namespaces" class="button small secondary">Refresh</button>
+    </div>
+    <p id="namespaces-status" role="status" class="quiet">Loading your namespaces…</p>
+    <div id="owned-namespaces" class="owned-namespaces"></div>
+    <button type="button" id="more-namespaces" class="button small secondary" hidden>Load more namespaces</button>
+  </section>
+  <div class="two-columns">
+    <section class="form-card">
+      <h2>Create a namespace</h2>
+      <p class="quiet">
+        Namespaces group your packages. Only you can publish to yours.
+        Public namespaces can be read by anyone; private namespaces are only accessible to you.
+      </p>
+      <form id="namespace-form">
+        <label for="namespace-name">Namespace name</label
+        ><input
+          name="name"
+          id="namespace-name"
+          required
+          pattern="[a-z0-9][a-z0-9._-]*"
+          maxlength="64"
+          placeholder="your-team"
+        /><label for="namespace-description">Description</label
+        ><input
+          name="description"
+          id="namespace-description"
+          maxlength="256"
+          placeholder="What will you build here?"
+        />
+        <label for="namespace-visibility">Visibility</label>
+        <select name="visibility" id="namespace-visibility" aria-describedby="namespace-visibility-hint">
+          <option value="public">Public — anyone can read</option>
+          <option value="private">Private — only you can access</option>
+        </select>
+        <p id="namespace-visibility-hint" class="quiet">Applies to every package and release in this namespace. Your personal tokens have the same access as you.</p>
+        <p role="status" id="namespace-status"></p>
+        <button class="button">Create namespace →</button>
+      </form>
+    </section>
+    <section class="form-card">
+      <h2>Personal access tokens</h2>
+      <p class="quiet">
+        For Wasmd CLI and automation, including GitHub Actions. Choose an
+        expiration or keep a token valid until you revoke it. Tokens can only
+        write to namespaces you own.
+      </p>
+      <form id="token-form">
+        <label for="token-name">Token name</label
+        ><input
+          name="name"
+          id="token-name"
+          required
+          maxlength="64"
+          placeholder="My development machine"
+        />
+        <label for="token-expiration">Expiration</label>
+        <select name="expiration" id="token-expiration" aria-describedby="token-expiration-hint">
+          <option value="7">7 days</option>
+          <option value="30">30 days</option>
+          <option value="90" selected>90 days</option>
+          <option value="365">1 year</option>
+          <option value="custom">Custom duration</option>
+          <option value="never">No expiration</option>
+        </select>
+        <div id="token-custom-expiration" hidden>
+          <label for="token-days">Expires in (days)</label>
+          <input name="days" id="token-days" type="number" min="1" max="3650" step="1" value="90" disabled />
+        </div>
+        <p class="quiet" id="token-expiration-hint">Choose 1–3650 days, or no expiration. You can revoke a token at any time.</p>
+        <p role="status" id="token-status"></p>
+        <button class="button secondary">Create token</button>
+      </form>
+      <div id="new-token" class="notice" hidden>
+        <strong>Copy this token now. It is only shown once.</strong>
+        <pre id="token-secret"></pre>
+        <button class="button small secondary" id="copy-token">
+          Copy token
+        </button>
+      </div>
+      <div id="tokens" class="token-list"></div>
+    </section>
+  </div>
+</div>

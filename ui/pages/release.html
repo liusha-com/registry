@@ -1,0 +1,39 @@
+<section class="page-heading">
+  <a id="package-back" class="text-link" href="/explore">← Package overview</a>
+  <p class="eyebrow">IMMUTABLE RELEASE</p>
+  <h1 id="package-title">Release details</h1>
+  <p id="package-description"></p>
+</section>
+<p id="page-status" role="status">Loading release…</p>
+<div id="release-content" hidden>
+  <section class="install">
+    <span>INSTALL WITH WASMD</span>
+    <pre id="install-command"></pre>
+    <button class="button small secondary" id="copy-install">
+      Copy command
+    </button>
+  </section>
+  <section class="section">
+    <h2>Artifacts</h2>
+    <div id="artifacts" class="package-grid"></div>
+  </section>
+  <section class="section">
+    <h2>Component interfaces</h2>
+    <div id="interfaces"></div>
+  </section>
+  <section class="section">
+    <details>
+      <summary>View the full package manifest</summary>
+      <pre id="manifest" class="code-panel"></pre>
+    </details>
+  </section>
+  <section id="release-admin" class="notice" hidden>
+    <h2>Release visibility</h2>
+    <p>
+      Yanking excludes this version from resolution. Its exact version and
+      artifacts remain available.
+    </p>
+    <button id="yank" class="button secondary">Yank release</button>
+    <p id="yank-status" role="status"></p>
+  </section>
+</div>

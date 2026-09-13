@@ -1,0 +1,41 @@
+<section class="hub-hero">
+  <div class="hero-copy">
+    <p class="eyebrow">THE WEBASSEMBLY PACKAGE REGISTRY</p>
+    <h1>Build with more.<br /><em>Run anywhere.</em></h1>
+    <p>Discover reusable WebAssembly modules and components.<br class="desktop-break" /> Share your work. Make your next release portable.</p>
+    <div class="hero-actions"><a class="button" href="/explore">Explore packages <span aria-hidden="true">→</span></a><a class="button secondary" href="/publish">Publish a package</a></div>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <div class="artifact-tile tile-back"><span>{ }</span><small>COMPONENT</small></div>
+    <div class="artifact-tile tile-front"><span>Wasm</span><small>BUILD ONCE. RUN ANYWHERE.</small></div>
+    <div class="artifact-chip">✓ SHA-256 verified</div>
+  </div>
+</section>
+<div class="hub-layout">
+  <aside class="catalog-sidebar" aria-label="Registry navigation">
+    <p class="sidebar-label">DISCOVER</p>
+    <a class="active" href="/explore"><span aria-hidden="true">▦</span> All packages</a>
+    <a href="/explore?q=wasi"><span aria-hidden="true">◇</span> Search WASI</a>
+    <a href="/explore?q=component"><span aria-hidden="true">{ }</span> Search components</a>
+    <p class="sidebar-label">YOUR WORKSPACE</p>
+    <a href="/account">Namespaces & tokens</a><a href="/publish">Publish a package</a>
+    <p class="sidebar-label">RESOURCES</p>
+    <a href="/docs">Getting started <span aria-hidden="true">↗</span></a><a href="/openapi.yaml">API reference</a>
+    <div class="sidebar-note"><strong>Open by design.</strong><p>Standard WebAssembly. Immutable releases. Interfaces you can inspect.</p></div>
+  </aside>
+  <div class="catalog-main">
+    <div class="section-heading"><div><p class="eyebrow">YOUR NEXT DEPENDENCY</p><h2>Discover the registry</h2></div><a class="text-link" href="/explore">View all packages →</a></div>
+    <div class="spotlight-grid">
+      <a class="spotlight" href="/docs"><span class="spotlight-icon" aria-hidden="true">⌘</span><div><small>START BUILDING</small><h3>From package to running code</h3><p>Pull a release and run it with Wasmd.</p></div><span aria-hidden="true">→</span></a>
+      <a class="spotlight" href="/publish"><span class="spotlight-icon" aria-hidden="true">↥</span><div><small>SHARE YOUR WORK</small><h3>A home for your components</h3><p>Claim a namespace. Publish your first version.</p></div><span aria-hidden="true">→</span></a>
+    </div>
+    <section class="stats" aria-label="Registry statistics">
+      <div><strong data-stat="packages">—</strong><span>Packages</span></div><div><strong data-stat="versions">—</strong><span>Releases</span></div>
+      <div><strong data-stat="namespaces">—</strong><span>Namespaces</span></div><div><strong data-stat="components">—</strong><span>Components</span></div>
+    </section>
+    <section class="section latest-packages"><div class="section-heading"><h2>Recently updated</h2><span class="quiet">From this registry</span></div>
+      <p id="page-status" role="status" class="quiet">Loading packages…</p><div id="packages" class="package-grid"></div>
+    </section>
+    <section class="callout"><div><h2>Your next release belongs here.</h2><p>Create an account and start publishing portable packages.</p></div><a class="button" href="/register">Get started →</a></section>
+  </div>
+</div>

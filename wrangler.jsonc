@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "registry",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-07-01",
+  "workers_dev": true,
+  "limits": { "cpu_ms": 30000 },
+  "observability": { "enabled": true },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "wasmd-registry",
+    "migrations_dir": "worker/migrations"
+  }],
+  "r2_buckets": [{ "binding": "BLOBS", "bucket_name": "wasmd-registry-blobs" }],
+  "rules": [{ "type": "Text", "globs": ["**/*.css", "**/*.txt", "**/*.svg", "**/*.yaml"], "fallthrough": true }],
+  "vars": {
+    "PUBLIC_READ": "true",
+    "REGISTRATION_ENABLED": "true",
+    "MAX_BLOB_BYTES": "8388608",
+    "MAX_ANALYSIS_BYTES": "8388608"
+  },
+  "triggers": { "crons": ["17 * * * *"] }
+}

@@ -1,0 +1,74 @@
+[package]
+name = "wasmd-registry"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+description = "Open Wasm Native Registry server and client"
+homepage = "https://wasmd.com"
+repository = "https://github.com/wasmd/registry"
+readme = "README.md"
+keywords = ["webassembly", "wasm", "registry", "runtime"]
+categories = ["web-programming::http-server", "development-tools"]
+
+[lib]
+name = "wasmd_registry"
+path = "src/lib.rs"
+
+[[bin]]
+name = "wasmd-registry"
+path = "src/bin/server.rs"
+
+[[bin]]
+name = "wr"
+path = "src/bin/wr.rs"
+
+[dependencies]
+anyhow = "1.0"
+argon2 = { version = "0.5.3", default-features = false, features = ["alloc", "password-hash"] }
+axum = { version = "0.8", features = ["http2", "json", "macros"] }
+base64 = "0.22"
+clap = { version = "4.6", features = ["derive", "env"] }
+futures-util = "0.3"
+getrandom = "0.3"
+hex = "0.4"
+reqwest = { version = "0.13", features = ["json", "stream"] }
+semver = { version = "1.0", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "migrate"] }
+subtle = "2.6"
+thiserror = "2.0"
+time = { version = "0.3", features = ["formatting", "serde", "parsing"] }
+tokio = { version = "1.52", features = ["macros", "rt-multi-thread", "signal", "fs", "io-util", "net", "process", "sync", "time"] }
+tokio-util = { version = "0.7", features = ["io"] }
+tower = { version = "0.5", features = ["limit", "util"] }
+tower-http = { version = "0.6", features = ["catch-panic", "compression-gzip", "cors", "limit", "request-id", "trace", "fs"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+url = "2.5"
+wasmparser = "0.258"
+wit-component = "0.258"
+wit-parser = "0.258"
+
+[dev-dependencies]
+tempfile = "3.20"
+wat = "1.239"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+missing_errors_doc = "allow"
+doc_markdown = "allow"
+must_use_candidate = "allow"
+assigning_clones = "allow"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

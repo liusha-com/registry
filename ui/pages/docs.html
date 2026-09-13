@@ -1,0 +1,61 @@
+<section class="page-heading">
+  <p class="eyebrow">A SMALL GUIDE TO GETTING STARTED</p>
+  <h1>From first pull<br />to first publish.</h1>
+  <p>
+    Use the browser to explore. Use Wasmd to bring packages into your workflow.
+  </p>
+</section>
+<div class="docs-layout">
+  <nav class="docs-nav" aria-label="On this page">
+    <a href="#account">Create an account</a><a href="#cli">Connect the CLI</a
+    ><a href="#publish">Publish a release</a><a href="#run">Host your registry</a>
+  </nav>
+  <article class="prose">
+    <section id="account">
+      <h2>01. Make it yours.</h2>
+      <p>
+        <a href="/register">Create an account</a> with an email address and a unique
+        passphrase. Open <a href="/account">your account</a> to claim a
+        namespace and generate a personal access token. Copy the token
+        immediately; the registry never shows it again.
+      </p>
+    </section>
+    <section id="cli">
+      <h2>02. Connect your tools.</h2>
+      <p>
+        Pass your personal token through standard input. Replace the example URL
+        with this registry's public URL.
+      </p>
+      <pre>
+$env:WASMD_REGISTRY_TOKEN | wasmd login https://registry.example.com --token-stdin</pre
+      >
+      <p>
+        Browser sessions expire after 24 hours. Choose a duration or no expiration
+        when creating an API token. The default is 90 days; revoke unused tokens
+        from your account.
+      </p>
+    </section>
+    <section id="publish">
+      <h2>03. Publish something useful.</h2>
+      <pre>
+wasmd namespace create your-team --description "Our components"
+wasmd push hello.wasm your-team/hello:1.0.0
+wasmd pull your-team/hello:1.0.0</pre
+      >
+      <p>
+        You can also use the <a href="/publish">publishing page</a>. Every
+        upload is checked against its SHA-256 digest. Version coordinates are
+        immutable; create a new version instead of replacing an existing one.
+      </p>
+    </section>
+    <section id="run">
+      <h2>04. Host your own registry.</h2>
+      <p>
+        Deploy on Cloudflare Workers with D1 and R2 using the
+        <a href="https://github.com/liusha-com/registry#deploy-to-cloudflare-workers" rel="noreferrer">Deploy to Cloudflare button</a>.
+        See the <a href="https://github.com/liusha-com/registry#configuration" rel="noreferrer">Cloudflare setup guide</a>
+        for configuration, backups, and upload limits.
+      </p>
+    </section>
+  </article>
+</div>

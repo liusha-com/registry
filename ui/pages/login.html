@@ -1,0 +1,49 @@
+<section class="auth-layout">
+  <div class="auth-story">
+    <p class="eyebrow">BACK TO BUILDING</p>
+    <h1>Your next release<br /> starts here.</h1>
+    <p>
+      Sign in to publish, manage your namespaces, and create tokens for your
+      tools.
+    </p>
+    <a class="text-link" href="/explore">Just browsing? Explore packages →</a>
+  </div>
+  <div class="form-card">
+    <h2>Welcome back</h2>
+    <p class="quiet">
+      New to Wasmd Registry? <a href="/register">Create an account</a>
+    </p>
+    <div data-github-auth hidden>
+      <a class="button github-button full" href="/v1/auth/github"><span aria-hidden="true">◉</span> Continue with GitHub</a>
+      <div class="auth-divider"><span>or sign in with email</span></div>
+    </div>
+    <p id="oauth-status" role="status"></p>
+    <form id="auth-form" method="post" action="/v1/auth/login">
+      <label for="email">Email address</label
+      ><input
+        id="email"
+        name="email"
+        type="email"
+        maxlength="254"
+        required
+        autocomplete="email"
+        autocapitalize="none"
+        spellcheck="false"
+        placeholder="you@example.com"
+      /><label for="password">Password</label
+      ><input
+        id="password"
+        name="password"
+        type="password"
+        required
+        autocomplete="current-password"
+      />
+      <p id="form-status" role="status" aria-live="polite"></p>
+      <button class="button full">Sign in →</button>
+    </form>
+    <p class="form-footnote">
+      Use your account password here. Personal access tokens are for the CLI and
+      API.
+    </p>
+  </div>
+</section>

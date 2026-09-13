@@ -1,0 +1,56 @@
+<section class="auth-layout">
+  <div class="auth-story">
+    <p class="eyebrow">YOUR CODE BELONGS HERE</p>
+    <h1>Make yourself<br /> at home.</h1>
+    <p>
+      Build a namespace of your own. Share a component. Keep every release
+      verifiable.
+    </p>
+    <ol class="steps">
+      <li><b>01</b> Create your account</li>
+      <li><b>02</b> Claim a unique namespace</li>
+      <li><b>03</b> Publish your first Wasm package</li>
+    </ol>
+  </div>
+  <div class="form-card">
+    <h2>Create your account</h2>
+    <p class="quiet">Already a member? <a href="/login">Sign in</a></p>
+    <div data-github-auth hidden>
+      <a class="button github-button full" href="/v1/auth/github"><span aria-hidden="true">◉</span> Continue with GitHub</a>
+      <div class="auth-divider"><span>or create an account with email</span></div>
+    </div>
+    <p id="oauth-status" role="status"></p>
+    <form id="auth-form" method="post" action="/v1/auth/register">
+      <div id="email-field">
+        <label for="email">Email address</label>
+        <input id="email" name="email" required type="email" autocomplete="email" maxlength="254" placeholder="you@example.com" />
+      </div>
+      <label for="password">Password</label
+      ><input
+        id="password"
+        name="password"
+        type="password"
+        required
+        minlength="12"
+        maxlength="128"
+        autocomplete="new-password"
+        aria-describedby="password-hint"
+      /><small id="password-hint"
+        >At least 12 characters. A unique passphrase works well.</small
+      ><label for="confirm-password">Confirm password</label
+      ><input
+        id="confirm-password"
+        name="confirm"
+        type="password"
+        required
+        autocomplete="new-password"
+      />
+      <p id="form-status" role="status" aria-live="polite"></p>
+      <button class="button full">Create account →</button>
+    </form>
+    <p class="form-footnote">
+      Your browser session expires after 24 hours. You control access tokens
+      from your account.
+    </p>
+  </div>
+</section>

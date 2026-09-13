@@ -1,0 +1,106 @@
+<section class="page-heading">
+  <p class="eyebrow">FROM YOUR MACHINE TO THE WORLD</p>
+  <h1>Ship your next release.</h1>
+  <p>
+    Upload a Wasm binary and publish an immutable, content-addressed version.
+  </p>
+</section>
+<p id="page-status" role="status">Checking your session…</p>
+<div class="publish-layout">
+  <form id="publish-form" class="form-card" hidden>
+    <h2>Package details</h2>
+    <div class="two-fields">
+      <div>
+        <label for="namespace">Namespace</label
+        ><input
+          id="namespace"
+          name="namespace"
+          required
+          placeholder="your-team"
+          pattern="[a-z0-9][a-z0-9._-]*"
+        />
+      </div>
+      <div>
+        <label for="package-name">Package name</label
+        ><input
+          id="package-name"
+          name="name"
+          required
+          placeholder="hello-world"
+          pattern="[a-z0-9][a-z0-9._-]*"
+        />
+      </div>
+    </div>
+    <small
+      >Create your namespace first in
+      <a href="/account">account settings</a>.</small
+    >
+    <div class="two-fields">
+      <div>
+        <label for="version">Version</label
+        ><input id="version" name="version" required placeholder="1.0.0" />
+      </div>
+      <div>
+        <label for="license">License</label
+        ><input
+          id="license"
+          name="license"
+          placeholder="Apache-2.0"
+          maxlength="128"
+        />
+      </div>
+    </div>
+    <label for="description">Description</label
+    ><textarea
+      id="description"
+      name="description"
+      rows="3"
+      maxlength="4096"
+      placeholder="What does your package do?"
+    ></textarea
+    ><label for="artifact">Wasm artifact</label
+    ><input
+      id="artifact"
+      name="artifact"
+      type="file"
+      accept=".wasm,application/wasm"
+      required
+    /><small id="artifact-limit"
+      >Core modules and components. Loading the registry's upload limit.</small
+    >
+    <label for="publish-overview">Overview <span class="quiet">(optional)</span></label>
+    <div id="publish-overview-editor" class="markdown-editor">
+      <div class="editor-toolbar"><button type="button" data-editor-mode="write" aria-pressed="true">Write</button><button type="button" data-editor-mode="preview" aria-pressed="false">Preview</button><span>Markdown supported</span></div>
+      <textarea id="publish-overview" name="overview" rows="12" maxlength="65536" placeholder="# My WebAssembly package&#10;&#10;Explain what it does and how to use it." aria-describedby="publish-overview-help"></textarea>
+      <div class="markdown-body markdown-preview" hidden></div>
+    </div>
+    <small id="publish-overview-help">Up to 64 KiB. Leave blank to keep the existing overview, or enter Markdown to replace it. You can also edit it on the package page. Use absolute HTTPS image and documentation URLs.</small>
+    <p id="form-status" role="status" aria-live="polite"></p>
+    <button class="button full">Publish release ↗</button>
+  </form>
+  <aside class="publish-aside">
+    <h2>A release you can rely on.</h2>
+    <div class="feature">
+      <b>01 / Verified bytes</b>
+      <p>
+        Your browser computes SHA-256. The registry verifies it before storing
+        the artifact.
+      </p>
+    </div>
+    <div class="feature">
+      <b>02 / Immutable versions</b>
+      <p>
+        A published version cannot be overwritten. Publish a new version for
+        your next change.
+      </p>
+    </div>
+    <div class="feature">
+      <b>03 / Standard interfaces</b>
+      <p>
+        Component interfaces and WIT are extracted for inspection alongside each
+        release.
+      </p>
+    </div>
+    <a class="text-link" href="/docs">Prefer the command line? →</a>
+  </aside>
+</div>
